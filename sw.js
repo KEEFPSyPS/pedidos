@@ -51,3 +51,10 @@ self.addEventListener('activate', event => {
     ))
   );
 });
+
+// Escucha mensajes desde la interfaz (index.html)
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});

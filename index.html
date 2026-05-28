@@ -336,6 +336,23 @@
             </div>
         </div>
 
+        <!-- Toast de Actualización Disponible -->
+        <div id="update-toast" class="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 translate-y-[150%] opacity-0 pointer-events-none flex flex-col gap-3 bg-white border border-blue-200 shadow-xl rounded-xl p-4 w-11/12 max-w-sm">
+            <div class="flex items-start gap-3">
+                <div class="bg-blue-100 p-2 rounded-full shrink-0">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-blue-600"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="font-bold text-slate-800 text-sm">Nueva versión disponible</h3>
+                    <p class="text-xs text-slate-600 mt-0.5">Se han descargado nuevas mejoras. Actualiza para aplicar los cambios.</p>
+                </div>
+            </div>
+            <button id="btn-update-app" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors text-sm flex justify-center items-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Actualizar ahora
+            </button>
+        </div>
+
         <!-- Botones Flotantes de Acción -->
         <div id="footer-actions" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] p-4 z-20">
             <div class="max-w-4xl mx-auto flex flex-col sm:flex-row gap-3">
@@ -1098,11 +1115,45 @@
 
     <script>
         // Service Worker Registration
+        let newWorker;
+        const updateToast = document.getElementById('update-toast');
+        const btnUpdate = document.getElementById('btn-update-app');
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registrado con éxito.', reg))
+                    .then(reg => {
+                        console.log('Service Worker registrado con éxito.', reg);
+                        
+                        // Detectar cuando hay una nueva actualización disponible
+                        reg.addEventListener('updatefound', () => {
+                            newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                // Si se instaló uno nuevo y ya había uno controlando la página, mostramos el aviso
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    updateToast.classList.remove('translate-y-[150%]', 'opacity-0', 'pointer-events-none');
+                                }
+                            });
+                        });
+                    })
                     .catch(err => console.error('Error en el registro del Service Worker:', err));
+
+                // Escuchar el cambio de controlador para recargar la página solo una vez
+                let refreshing;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    window.location.reload();
+                    refreshing = true;
+                });
+            });
+        }
+
+        // Acción del botón de actualización
+        if (btnUpdate) {
+            btnUpdate.addEventListener('click', () => {
+                if (newWorker) {
+                    newWorker.postMessage({ action: 'skipWaiting' });
+                }
             });
         }
     </script>
