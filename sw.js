@@ -1,8 +1,9 @@
-const CACHE_NAME = 'pedidos-hepa-cache-v1';
+const CACHE_NAME = 'pedidos-hepa-cache-v2';
 const URLS_TO_CACHE = [
   '/',
   'index.html',
   'img/Logo_HEPA.png',
+  'img/hapa_512.png',
   // CDNs and external resources are often better left to the browser's cache,
   // but for a basic offline-first experience, we can cache them.
   // Note: Caching opaque responses (like from CDNs without CORS) can be tricky.
