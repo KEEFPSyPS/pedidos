@@ -1,0 +1,23 @@
+{
+    "name": "Pedidos HEPA",
+    "short_name": "Pedidos HEPA",
+    "description": "Aplicación para la captura de pedidos de refacciones.",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#f1f5f9",
+    "theme_color": "#1e3a8a",
+    "icons": [
+        {
+            "src": "img/Logo_HEPA.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "img/Logo_HEPA.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

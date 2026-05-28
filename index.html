@@ -3,8 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captura de Pedidos</title>
+    <title>Captura de Pedidos HEPA</title>
+    <link rel="icon" href="img/Logo_HEPA.png" type="image/png">
     
+    <!-- PWA Manifest & Theme -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+
+    <!-- Apple PWA Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pedidos HEPA">
+    <link rel="apple-touch-icon" href="img/Logo_HEPA.png">
+
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -22,22 +33,59 @@
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
     </div>
 
+    <!-- Pantalla de Login -->
+    <div id="login-screen" class="hidden flex items-center justify-center min-h-screen bg-slate-100 absolute inset-0 z-40 px-4">
+        <div class="bg-white rounded-xl shadow-md border border-slate-200 p-6 w-full max-w-sm">
+            <div class="text-center mb-6">
+                <img src="img/Logo_HEPA.png" alt="Logo HEPA" class="w-48 mx-auto mb-4">
+                <h2 class="text-xl font-bold text-slate-800">Bienvenido</h2>
+                <p class="text-sm text-slate-500">Inicia sesión para continuar</p>
+            </div>
+            <form id="login-form" class="flex flex-col gap-4">
+                <div id="login-error" class="hidden text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200 text-center"></div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1 ml-1">Correo Electrónico</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="mail" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <input type="email" id="login-email" required class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="correo@ejemplo.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1 ml-1">Contraseña</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="lock" class="h-4 w-4 text-slate-400"></i>
+                        </div>
+                        <input type="password" id="login-password" required class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" id="btn-login-submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 mt-2">
+                    <span>Ingresar</span>
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Contenido de la App (Oculto hasta cargar) -->
     <div id="app-content" style="display: none;">
         <!-- Cabecera -->
         <header class="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-10">
             <div class="max-w-4xl mx-auto flex items-center gap-3">
-                <div class="bg-blue-800 p-2 rounded-lg">
-                    <i data-lucide="package" class="w-6 h-6 text-blue-100"></i>
-                </div>
+                <img src="img/Logo_HEPA.png" alt="Logo HEPA" class="h-10 w-auto rounded">
                 <div>
-                    <h1 class="text-xl font-bold leading-tight">Captura de Pedidos</h1>
+                    <h1 class="text-xl font-bold leading-tight">Sistema de Pedidos</h1>
                     <p class="text-blue-200 text-xs">Sincronización en tiempo real</p>
                 </div>
                 <div id="connection-status" class="ml-auto flex items-center gap-2 bg-blue-800/80 border border-blue-700 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300">
                     <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></div>
                     <span id="status-text" class="hidden sm:inline text-blue-100">Conectando...</span>
                 </div>
+                <button id="btn-logout" class="ml-2 bg-blue-800 hover:bg-red-600 border border-blue-700 hover:border-red-500 p-1.5 rounded-lg transition-colors" title="Cerrar Sesión">
+                    <i data-lucide="log-out" class="w-4 h-4 text-white"></i>
+                </button>
             </div>
         </header>
 
@@ -306,7 +354,7 @@
     <script type="module">
         // 1. IMPORTACIONES DE FIREBASE DIRECTO EN NAVEGADOR (ES Modules)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // ⚠️ CREDENCIALES DE FIREBASE ⚠️
@@ -959,19 +1007,56 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         });
 
-        // Autenticación y Escucha de Firestore
-        signInAnonymously(auth).catch(err => {
-            showError("Error de autenticación. Verifica tu conexión.");
-            document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('app-content').style.display = 'block';
-            setConnectionStatus('offline');
+        // Listeners globales para desuscribir al cerrar sesión
+        let unsubscribePedidos = null;
+        let unsubscribeProveedores = null;
+        let unsubscribeDepartamentos = null;
+
+        // Manejo de Inicio de Sesión
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            const btnSubmit = document.getElementById('btn-login-submit');
+
+            try {
+                errorDiv.classList.add('hidden');
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>';
+                
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+            } catch (err) {
+                errorDiv.textContent = "Credenciales incorrectas o usuario no encontrado.";
+                errorDiv.classList.remove('hidden');
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<span>Ingresar</span><i data-lucide="log-in" class="w-4 h-4"></i>';
+                lucide.createIcons();
+            }
+        });
+
+        // Manejo de Cerrar Sesión
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+                try {
+                    await signOut(auth);
+                } catch (err) {
+                    showError("No se pudo cerrar sesión.");
+                }
+            }
         });
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
             if (user) {
+                document.getElementById('login-screen').classList.add('hidden');
+
                 const pedidosRef = collection(db, 'artifacts', appId, 'users', user.uid, 'pedidos_pendientes');
-                onSnapshot(pedidosRef, (snapshot) => {
+                unsubscribePedidos = onSnapshot(pedidosRef, (snapshot) => {
                     items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     items.sort((a, b) => a.timestamp - b.timestamp);
                     applyFilters();
@@ -981,30 +1066,45 @@
                     document.getElementById('app-content').style.display = 'block';
                 }, (err) => {
                     showError("Error al cargar la lista de pedidos.");
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('app-content').style.display = 'block';
                     setConnectionStatus('offline');
                 });
 
                 const provRef = collection(db, 'artifacts', appId, 'users', user.uid, 'proveedores');
-                onSnapshot(provRef, (snapshot) => {
+                unsubscribeProveedores = onSnapshot(provRef, (snapshot) => {
                     proveedores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     proveedores.sort((a, b) => a.nombre.localeCompare(b.nombre));
                     renderProveedoresUI();
                 });
 
                 const deptRef = collection(db, 'artifacts', appId, 'users', user.uid, 'departamentos');
-                onSnapshot(deptRef, (snapshot) => {
+                unsubscribeDepartamentos = onSnapshot(deptRef, (snapshot) => {
                     departamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     departamentos.sort((a, b) => a.nombre.localeCompare(b.nombre));
                     renderDepartamentosUI();
                 });
             } else {
+                // Desuscribirse si venimos de una sesión activa para limpiar caché
+                if (unsubscribePedidos) unsubscribePedidos();
+                if (unsubscribeProveedores) unsubscribeProveedores();
+                if (unsubscribeDepartamentos) unsubscribeDepartamentos();
+                
+                document.getElementById('app-content').style.display = 'none';
                 document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
                 setConnectionStatus('offline');
+                document.getElementById('login-screen').classList.remove('hidden');
             }
         });
+    </script>
+
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registrado con éxito.', reg))
+                    .catch(err => console.error('Error en el registro del Service Worker:', err));
+            });
+        }
     </script>
 </body>
 </html>
