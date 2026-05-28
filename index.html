@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Pedidos</title>
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- jsPDF & AutoTable (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="min-h-screen bg-slate-100 pb-20 font-sans text-slate-800">
+
+    <!-- Pantalla de carga inicial -->
+    <div id="loading-screen" class="flex items-center justify-center min-h-screen bg-slate-100 absolute inset-0 z-50">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-800"></div>
+    </div>
+
+    <!-- Contenido de la App (Oculto hasta cargar) -->
+    <div id="app-content" style="display: none;">
+        <!-- Cabecera -->
+        <header class="bg-blue-900 text-white p-4 shadow-md sticky top-0 z-10">
+            <div class="max-w-4xl mx-auto flex items-center gap-3">
+                <div class="bg-blue-800 p-2 rounded-lg">
+                    <i data-lucide="package" class="w-6 h-6 text-blue-100"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">Captura de Pedidos</h1>
+                    <p class="text-blue-200 text-xs">Sincronización en tiempo real</p>
+                </div>
+                <div id="connection-status" class="ml-auto flex items-center gap-2 bg-blue-800/80 border border-blue-700 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300">
+                    <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></div>
+                    <span id="status-text" class="hidden sm:inline text-blue-100">Conectando...</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-4xl mx-auto p-4 sm:p-6">
+            <!-- Alerta de Errores -->
+            <div id="error-alert" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm flex items-start gap-3">
+                <i data-lucide="alert-circle" class="w-5 h-5 mt-0.5 flex-shrink-0"></i>
+                <p id="error-message" class="text-sm font-medium"></p>
+            </div>
+
+            <!-- Formulario de Entrada -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5 text-blue-600"></i>
+                    Agregar Artículo
+                </h2>
+                <form id="add-form" class="flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <!-- Código -->
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-600 mb-1 ml-1">Código</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="hash" class="h-5 w-5 text-slate-400"></i>
+                                </div>
+                                <input type="text" id="codigo" required class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base" placeholder="Ej. VW-045">
+                            </div>
+                        </div>
+                        <!-- Descripción -->
+                        <div class="flex-[2]">
+                            <label class="block text-sm font-medium text-slate-600 mb-1 ml-1">Descripción</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="type" class="h-5 w-5 text-slate-400"></i>
+                                </div>
+                                <input type="text" id="descripcion" required class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base" placeholder="Bomba de agua A7">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-4 items-end">
+                        <!-- Proveedor -->
+                        <div class="flex-1">
+                                <div class="flex justify-between items-end mb-1 ml-1">
+                                    <label class="block text-sm font-medium text-slate-600">Proveedor (Opcional)</label>
+                                    <button type="button" id="btn-open-proveedores" class="text-purple-600 hover:text-purple-800 text-xs font-bold flex items-center gap-1 transition-colors bg-purple-50 px-2 py-0.5 rounded">
+                                        <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> Administrar
+                                    </button>
+                                </div>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="truck" class="h-5 w-5 text-slate-400"></i>
+                                </div>
+                                <select id="proveedor" class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base appearance-none bg-white cursor-pointer truncate">
+                                    <option value="">Sin proveedor seleccionado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Departamento -->
+                        <div class="flex-1">
+                            <div class="flex justify-between items-end mb-1 ml-1">
+                                <label class="block text-sm font-medium text-slate-600">Depto. (Opcional)</label>
+                                <button type="button" id="btn-open-departamentos" class="text-teal-600 hover:text-teal-800 text-xs font-bold flex items-center gap-1 transition-colors bg-teal-50 px-2 py-0.5 rounded">
+                                    <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> Administrar
+                                </button>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i data-lucide="layers" class="h-5 w-5 text-slate-400"></i>
+                                </div>
+                                <select id="departamento" class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base appearance-none bg-white cursor-pointer truncate">
+                                    <option value="">Sin departamento</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Cantidad -->
+                        <div class="w-full md:w-32">
+                            <label class="block text-sm font-medium text-slate-600 mb-1 ml-1">Cant. sugerida</label>
+                            <input type="number" id="cantidad" inputmode="numeric" required min="1" value="1" class="block w-full px-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-center font-bold" placeholder="1">
+                        </div>
+                        <!-- Botón Enviar -->
+                        <div class="w-full md:w-auto">
+                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                                <span>Agregar</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Artículos -->
+            <div class="mb-6">
+                <div class="flex items-center mb-4 px-1">
+                    <h2 class="text-lg font-semibold text-slate-700 flex items-center gap-2">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                        Lista Actual (<span id="items-count">0</span>)
+                    </h2>
+                </div>
+
+                <!-- Panel de Filtros -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 mb-4 flex flex-col gap-3">
+                    <!-- Búsqueda y Limpiar -->
+                    <div class="flex gap-2">
+                        <div class="relative flex-1">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
+                            </div>
+                            <input type="text" id="search-input" class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Buscar artículo por código o descripción...">
+                        </div>
+                        <button id="btn-clear-filters" class="flex items-center justify-center px-3 py-2 bg-white border border-slate-300 text-slate-600 hover:text-red-600 hover:bg-red-50 hover:border-red-200 rounded-lg transition-colors font-medium text-sm flex-shrink-0 gap-2" title="Limpiar filtros">
+                            <i data-lucide="filter-x" class="w-4 h-4"></i>
+                            <span class="hidden sm:inline">Limpiar</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Filtros Avanzados -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="calendar" class="h-4 w-4 text-slate-400"></i>
+                            </div>
+                            <input type="date" id="date-input" class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm text-slate-600">
+                        </div>
+                        <select id="filter-proveedor" class="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm bg-white truncate">
+                            <option value="">Todos los prov.</option>
+                        </select>
+                        <select id="filter-departamento" class="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm bg-white truncate">
+                            <option value="">Todos los deptos.</option>
+                        </select>
+                        <select id="filter-estado" class="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm bg-white">
+                            <option value="">Todos los est.</option>
+                            <option value="pendiente">Pendientes</option>
+                            <option value="pedido">Pedidos</option>
+                            <option value="descartado">Descartados</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Estado Vacío -->
+                <div id="empty-state" class="bg-white rounded-xl shadow-sm border border-slate-200 p-10 text-center text-slate-500">
+                    <i data-lucide="package" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
+                    <p id="empty-title">La lista de pedidos está vacía.</p>
+                    <p id="empty-subtitle" class="text-sm mt-1">Agrega artículos usando el formulario de arriba.</p>
+                    <button id="btn-clear-filters-mobile" class="hidden mx-auto mt-4 text-blue-600 text-sm font-medium hover:underline">Limpiar filtros</button>
+                </div>
+
+                <!-- Contenedor de la lista -->
+                <div id="list-container" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <!-- Vista Móvil (Tarjetas) -->
+                    <div id="mobile-list" class="block sm:hidden"></div>
+
+                    <!-- Vista Escritorio (Tabla) -->
+                    <div class="hidden sm:block overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 border-b border-slate-200 text-sm">
+                                    <th class="p-4 font-medium w-16 text-center">#</th>
+                                    <th class="p-4 font-medium">Código</th>
+                                    <th class="p-4 font-medium">Descripción</th>
+                                    <th class="p-4 font-medium">Proveedor</th>
+                                    <th class="p-4 font-medium">Depto.</th>
+                                    <th class="p-4 font-medium text-center w-32">Cant. sugerida</th>
+                                    <th class="p-4 font-medium text-center w-32">Estado</th>
+                                    <th class="p-4 font-medium w-20 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="desktop-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal de Proveedores -->
+        <div id="modal-proveedores" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                    <h2 class="text-lg font-semibold flex items-center gap-2 text-slate-800">
+                        <i data-lucide="truck" class="w-5 h-5 text-purple-600"></i>
+                        Administrar Proveedores
+                    </h2>
+                    <button type="button" id="btn-close-proveedores" class="text-slate-400 hover:text-slate-600 transition-colors p-1 bg-white rounded-lg border border-slate-200 hover:bg-slate-100" title="Cerrar ventana">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="p-4 sm:p-6 overflow-y-auto">
+                    <form id="add-proveedor-form" class="flex flex-col sm:flex-row gap-3 mb-6">
+                        <div class="flex-1 relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="building-2" class="h-5 w-5 text-slate-400"></i>
+                            </div>
+                            <input type="text" id="nombre-proveedor" required class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm" placeholder="Nombre del proveedor...">
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Añadir</span>
+                        </button>
+                    </form>
+                    <h3 class="text-sm font-medium text-slate-500 mb-3">Proveedores registrados:</h3>
+                    <div id="proveedores-list" class="flex flex-wrap gap-2">
+                        <!-- Los proveedores aparecerán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Departamentos -->
+        <div id="modal-departamentos" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity">
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                    <h2 class="text-lg font-semibold flex items-center gap-2 text-slate-800">
+                        <i data-lucide="layers" class="w-5 h-5 text-teal-600"></i>
+                        Administrar Departamentos
+                    </h2>
+                    <button type="button" id="btn-close-departamentos" class="text-slate-400 hover:text-slate-600 transition-colors p-1 bg-white rounded-lg border border-slate-200 hover:bg-slate-100" title="Cerrar ventana">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="p-4 sm:p-6 overflow-y-auto">
+                    <form id="add-departamento-form" class="flex flex-col sm:flex-row gap-3 mb-6">
+                        <div class="flex-1 relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="tag" class="h-5 w-5 text-slate-400"></i>
+                            </div>
+                            <input type="text" id="nombre-departamento" required class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 text-sm" placeholder="Nombre del departamento...">
+                        </div>
+                        <button type="submit" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Añadir</span>
+                        </button>
+                    </form>
+                    <h3 class="text-sm font-medium text-slate-500 mb-3">Departamentos registrados:</h3>
+                    <div id="departamentos-list" class="flex flex-wrap gap-2">
+                        <!-- Los departamentos aparecerán aquí -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast de Artículo Duplicado -->
+        <div id="toast-notification" class="fixed top-20 right-4 z-50 transform transition-all duration-300 translate-x-[120%] opacity-0 flex items-center gap-3 bg-white border-l-4 border-yellow-500 shadow-xl rounded-lg p-4 max-w-sm pointer-events-none">
+            <div class="bg-yellow-100 p-2 rounded-full shrink-0">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-sm">Artículo ya agregado</h3>
+                <p id="toast-message" class="text-xs text-slate-600 mt-0.5">El código ya se encuentra en la lista.</p>
+            </div>
+        </div>
+
+        <!-- Botones Flotantes de Acción -->
+        <div id="footer-actions" class="hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] p-4 z-20">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row gap-3">
+                <button id="btn-pdf" class="flex-1 bg-slate-800 hover:bg-slate-900 active:bg-slate-950 text-white font-bold py-3.5 px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="file-down" class="w-5 h-5"></i>
+                    <span>Descargar PDF</span>
+                </button>
+                <button id="btn-whatsapp" class="flex-1 bg-[#25D366] hover:bg-[#20bd5a] active:bg-[#1da850] text-white font-bold py-3.5 px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="message-circle" class="w-5 h-5"></i>
+                    <span>Enviar por WhatsApp</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. IMPORTACIONES DE FIREBASE DIRECTO EN NAVEGADOR (ES Modules)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ⚠️ CREDENCIALES DE FIREBASE ⚠️
+        const firebaseConfig = {
+        apiKey: "AIzaSyCqyl_uDqvFjCcJXy2KRMNeXZ7c5nfwAms",
+        authDomain: "dblistapedidos.firebaseapp.com",
+        projectId: "dblistapedidos",
+        storageBucket: "dblistapedidos.firebasestorage.app",
+        messagingSenderId: "139331332054",
+        appId: "1:139331332054:web:c50aae1eb4e995db3be677"
+      };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = 'refaccionaria-app';
+
+        // Variables de estado global
+        let currentUser = null;
+        let items = [];
+        let filteredItems = [];
+        let proveedores = [];
+        let departamentos = [];
+
+        // Inicializar los íconos de Lucide
+        lucide.createIcons();
+
+        // Helpers de UI
+        function showError(msg) {
+            document.getElementById('error-message').textContent = msg;
+            const alertEl = document.getElementById('error-alert');
+            alertEl.classList.remove('hidden');
+            setTimeout(() => alertEl.classList.add('hidden'), 5000);
+        }
+
+        function setConnectionStatus(status) {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            
+            if (status === 'online') {
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]';
+                text.textContent = 'Conectado';
+            } else if (status === 'offline') {
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]';
+                text.textContent = 'Sin conexión';
+            } else {
+                dot.className = 'w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse';
+                text.textContent = 'Conectando...';
+            }
+        }
+
+        window.addEventListener('online', () => setConnectionStatus('online'));
+        window.addEventListener('offline', () => setConnectionStatus('offline'));
+
+        // Sistema de Filtrado
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const dateTerm = document.getElementById('date-input').value; // Formato "YYYY-MM-DD"
+            const proveedorTerm = document.getElementById('filter-proveedor').value;
+            const departamentoTerm = document.getElementById('filter-departamento').value;
+            const estadoTerm = document.getElementById('filter-estado').value;
+
+            filteredItems = items.filter(item => {
+                const matchSearch = item.codigo.toLowerCase().includes(searchTerm) || 
+                                    item.descripcion.toLowerCase().includes(searchTerm);
+                
+                let matchDate = true;
+                if (dateTerm) {
+                    const itemDate = new Date(item.timestamp);
+                    const year = itemDate.getFullYear();
+                    const month = String(itemDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(itemDate.getDate()).padStart(2, '0');
+                    const itemDateStr = `${year}-${month}-${day}`;
+                    matchDate = (itemDateStr === dateTerm);
+                }
+
+                const matchProveedor = proveedorTerm === '' || item.proveedor === proveedorTerm;
+                const matchDepartamento = departamentoTerm === '' || item.departamento === departamentoTerm;
+                const matchEstado = estadoTerm === '' || (item.estado || 'pendiente') === estadoTerm;
+
+                return matchSearch && matchDate && matchProveedor && matchDepartamento && matchEstado;
+            });
+
+            renderItems();
+        }
+
+        document.getElementById('search-input').addEventListener('input', applyFilters);
+        document.getElementById('date-input').addEventListener('change', applyFilters);
+        document.getElementById('filter-proveedor').addEventListener('change', applyFilters);
+        document.getElementById('filter-departamento').addEventListener('change', applyFilters);
+        document.getElementById('filter-estado').addEventListener('change', applyFilters);
+        
+        const clearFilters = () => {
+            document.getElementById('search-input').value = '';
+            document.getElementById('date-input').value = '';
+            document.getElementById('filter-proveedor').value = '';
+            document.getElementById('filter-departamento').value = '';
+            document.getElementById('filter-estado').value = '';
+            applyFilters();
+        };
+        document.getElementById('btn-clear-filters').addEventListener('click', clearFilters);
+        document.getElementById('btn-clear-filters-mobile').addEventListener('click', clearFilters);
+
+        // Notificación Toast Estética
+        function showDuplicateToast(codigo) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = `El código ${codigo} ya está en la lista.`;
+            
+            toast.classList.remove('translate-x-[120%]', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-x-[120%]', 'opacity-0');
+            }, 4000); // Se oculta a los 4 segundos
+        }
+
+        // Resaltar ítem en la lista (Intermitente)
+        function highlightItem(itemId) {
+            let desktopRow = document.getElementById(`item-desktop-${itemId}`);
+            let mobileRow = document.getElementById(`item-mobile-${itemId}`);
+            
+            if (!desktopRow && !mobileRow) {
+                clearFilters(); // Limpiar filtros temporalmente si el ítem está oculto por una búsqueda
+                desktopRow = document.getElementById(`item-desktop-${itemId}`);
+                mobileRow = document.getElementById(`item-mobile-${itemId}`);
+            }
+
+            const rowToHighlight = (window.innerWidth >= 640 && desktopRow) ? desktopRow : mobileRow;
+            
+            if (rowToHighlight) {
+                rowToHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                let blinks = 0;
+                const blinkInterval = setInterval(() => {
+                    rowToHighlight.classList.toggle('bg-yellow-100');
+                    blinks++;
+                    if (blinks >= 6) { // 3 parpadeos completos
+                        clearInterval(blinkInterval);
+                        rowToHighlight.classList.remove('bg-yellow-100');
+                    }
+                }, 300); // Velocidad del parpadeo
+            }
+        }
+
+        // Colores para los estados
+        function getStatusColor(status) {
+            switch(status) {
+                case 'pedido': return 'text-green-700 bg-green-100 border-green-300';
+                case 'descartado': return 'text-red-700 bg-red-100 border-red-300';
+                default: return 'text-yellow-700 bg-yellow-100 border-yellow-300';
+            }
+        }
+
+        // Control del Modal de Proveedores
+        const modalProveedores = document.getElementById('modal-proveedores');
+        document.getElementById('btn-open-proveedores').addEventListener('click', () => {
+            modalProveedores.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-proveedores').addEventListener('click', () => {
+            modalProveedores.classList.add('hidden');
+        });
+        modalProveedores.addEventListener('click', (e) => {
+            if (e.target === modalProveedores) modalProveedores.classList.add('hidden');
+        });
+
+        // Dibuja la UI de Proveedores
+        function renderProveedoresUI() {
+            const select = document.getElementById('proveedor');
+            const filterSelect = document.getElementById('filter-proveedor');
+            const currentVal = select.value; 
+            const filterCurrentVal = filterSelect.value;
+            
+            select.innerHTML = '<option value="">Sin proveedor seleccionado</option>';
+            filterSelect.innerHTML = '<option value="">Todos los prov.</option>';
+            
+            proveedores.forEach(p => {
+                const isSelected = p.nombre === currentVal ? 'selected' : '';
+                select.innerHTML += `<option value="${p.nombre}" ${isSelected}>${p.nombre}</option>`;
+                
+                const isFilterSelected = p.nombre === filterCurrentVal ? 'selected' : '';
+                filterSelect.innerHTML += `<option value="${p.nombre}" ${isFilterSelected}>${p.nombre}</option>`;
+            });
+
+            const list = document.getElementById('proveedores-list');
+            if (proveedores.length === 0) {
+                list.innerHTML = '<p class="text-sm text-slate-400 italic">No hay proveedores registrados aún.</p>';
+            } else {
+                list.innerHTML = '';
+                proveedores.forEach(p => {
+                    list.innerHTML += `
+                        <div class="flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm">
+                            <i data-lucide="building-2" class="w-3.5 h-3.5 mr-0.5"></i>
+                            ${p.nombre}
+                            <button type="button" onclick="window.deleteProveedor('${p.id}')" class="text-purple-400 hover:text-purple-700 ml-1 bg-white hover:bg-purple-100 rounded-full p-0.5 transition-colors" title="Eliminar proveedor">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>`;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        // Control del Modal de Departamentos
+        const modalDepartamentos = document.getElementById('modal-departamentos');
+        document.getElementById('btn-open-departamentos').addEventListener('click', () => {
+            modalDepartamentos.classList.remove('hidden');
+        });
+        document.getElementById('btn-close-departamentos').addEventListener('click', () => {
+            modalDepartamentos.classList.add('hidden');
+        });
+        modalDepartamentos.addEventListener('click', (e) => {
+            if (e.target === modalDepartamentos) modalDepartamentos.classList.add('hidden');
+        });
+
+        // Dibuja la UI de Departamentos
+        function renderDepartamentosUI() {
+            const select = document.getElementById('departamento');
+            const filterSelect = document.getElementById('filter-departamento');
+            const currentVal = select.value;
+            const filterCurrentVal = filterSelect.value;
+            
+            select.innerHTML = '<option value="">Sin departamento</option>';
+            filterSelect.innerHTML = '<option value="">Todos los deptos.</option>';
+            
+            departamentos.forEach(d => {
+                const isSelected = d.nombre === currentVal ? 'selected' : '';
+                select.innerHTML += `<option value="${d.nombre}" ${isSelected}>${d.nombre}</option>`;
+                
+                const isFilterSelected = d.nombre === filterCurrentVal ? 'selected' : '';
+                filterSelect.innerHTML += `<option value="${d.nombre}" ${isFilterSelected}>${d.nombre}</option>`;
+            });
+
+            const list = document.getElementById('departamentos-list');
+            if (departamentos.length === 0) {
+                list.innerHTML = '<p class="text-sm text-slate-400 italic">No hay departamentos registrados aún.</p>';
+            } else {
+                list.innerHTML = '';
+                departamentos.forEach(d => {
+                    list.innerHTML += `
+                        <div class="flex items-center gap-1 bg-teal-50 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 mr-0.5"></i>
+                            ${d.nombre}
+                            <button type="button" onclick="window.deleteDepartamento('${d.id}')" class="text-teal-400 hover:text-teal-700 ml-1 bg-white hover:bg-teal-100 rounded-full p-0.5 transition-colors" title="Eliminar departamento">
+                                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>`;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        // Función principal de dibujado (Reemplaza a React)
+        function renderItems() {
+            document.getElementById('items-count').textContent = filteredItems.length;
+
+            const emptyState = document.getElementById('empty-state');
+            const listContainer = document.getElementById('list-container');
+            const footerActions = document.getElementById('footer-actions');
+            const mobileList = document.getElementById('mobile-list');
+            const desktopList = document.getElementById('desktop-list');
+
+            const hasActiveFilters = document.getElementById('search-input').value !== '' || 
+                                     document.getElementById('date-input').value !== '' ||
+                                     document.getElementById('filter-proveedor').value !== '' ||
+                                     document.getElementById('filter-departamento').value !== '' ||
+                                     document.getElementById('filter-estado').value !== '';
+
+            if (filteredItems.length === 0) {
+                emptyState.classList.remove('hidden');
+                listContainer.classList.add('hidden');
+                footerActions.classList.add('hidden');
+                
+                if (hasActiveFilters) {
+                    document.getElementById('empty-title').textContent = "No se encontraron resultados.";
+                    document.getElementById('empty-subtitle').textContent = "Intenta con otros términos o limpia los filtros.";
+                    document.getElementById('btn-clear-filters-mobile').classList.remove('hidden');
+                } else {
+                    document.getElementById('empty-title').textContent = "La lista de pedidos está vacía.";
+                    document.getElementById('empty-subtitle').textContent = "Agrega artículos usando el formulario de arriba.";
+                    document.getElementById('btn-clear-filters-mobile').classList.add('hidden');
+                }
+            } else {
+                emptyState.classList.add('hidden');
+                listContainer.classList.remove('hidden');
+                footerActions.classList.remove('hidden');
+            }
+
+            mobileList.innerHTML = '';
+            desktopList.innerHTML = '';
+
+            filteredItems.forEach((item, index) => {
+                const estado = item.estado || 'pendiente';
+                const statusColor = getStatusColor(estado);
+                
+                const timeString = item.estadoTimestamp 
+                    ? new Date(item.estadoTimestamp).toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit'})
+                    : '';
+                const dateString = item.estadoTimestamp
+                    ? new Date(item.estadoTimestamp).toLocaleDateString('es-MX')
+                    : '';
+
+                const rowHtmlMobile = `
+                    <div id="item-mobile-${item.id}" class="p-4 border-b border-slate-100 flex items-center gap-4 transition-colors duration-300">
+                        <div class="bg-slate-100 text-slate-500 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shrink-0">${index + 1}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-bold text-blue-900 truncate pr-2">${item.codigo}</span>
+                                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">x${item.cantidad}</span>
+                            </div>
+                            <p class="text-slate-600 text-sm truncate">${item.descripcion}</p>
+                            <div class="flex flex-wrap gap-3 mt-1">
+                                ${item.proveedor ? `<p class="text-slate-500 text-xs flex items-center gap-1"><i data-lucide="truck" class="w-3 h-3"></i> ${item.proveedor}</p>` : ''}
+                                ${item.departamento ? `<p class="text-slate-500 text-xs flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3"></i> ${item.departamento}</p>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <select onchange="window.changeItemStatus('${item.id}', this.value)" class="text-xs font-bold rounded px-2 py-1 border outline-none cursor-pointer ${statusColor}" title="${dateString ? 'Actualizado: ' + dateString : ''}">
+                                    <option value="pendiente" ${estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                    <option value="pedido" ${estado === 'pedido' ? 'selected' : ''}>Pedido</option>
+                                    <option value="descartado" ${estado === 'descartado' ? 'selected' : ''}>Descartado</option>
+                                </select>
+                                ${timeString ? `<span class="text-[10px] text-slate-400 font-medium" title="Fecha: ${dateString}">${timeString}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex gap-1 shrink-0">
+                            <button onclick="window.editItemQuantity('${item.id}', '${item.codigo}', ${item.cantidad})" class="p-3 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar cantidad">
+                                <i data-lucide="pencil" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="window.deleteItem('${item.id}')" class="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                
+                const rowHtmlDesktop = `
+                    <tr id="item-desktop-${item.id}" class="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-300">
+                        <td class="p-4 text-center text-slate-400 text-sm">${index + 1}</td>
+                        <td class="p-4 font-bold text-blue-900">${item.codigo}</td>
+                        <td class="p-4 text-slate-700">${item.descripcion}</td>
+                        <td class="p-4 text-slate-500 text-sm">
+                            ${item.proveedor ? `<span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-600 font-medium"><i data-lucide="truck" class="w-3 h-3"></i> ${item.proveedor}</span>` : '-'}
+                        </td>
+                        <td class="p-4 text-slate-500 text-sm">
+                            ${item.departamento ? `<span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-600 font-medium"><i data-lucide="layers" class="w-3 h-3"></i> ${item.departamento}</span>` : '-'}
+                        </td>
+                        <td class="p-4 text-center font-bold">${item.cantidad}</td>
+                        <td class="p-4 text-center">
+                            <select onchange="window.changeItemStatus('${item.id}', this.value)" class="text-xs font-bold rounded px-2 py-1 border outline-none cursor-pointer ${statusColor}" title="${dateString ? 'Actualizado: ' + dateString : ''}">
+                                <option value="pendiente" ${estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="pedido" ${estado === 'pedido' ? 'selected' : ''}>Pedido</option>
+                                <option value="descartado" ${estado === 'descartado' ? 'selected' : ''}>Descartado</option>
+                            </select>
+                            ${timeString ? `<div class="text-[10px] text-slate-400 font-medium mt-1" title="Fecha: ${dateString}">${timeString}</div>` : ''}
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <button onclick="window.editItemQuantity('${item.id}', '${item.codigo}', ${item.cantidad})" class="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar cantidad">
+                                    <i data-lucide="pencil" class="w-5 h-5"></i>
+                                </button>
+                                <button onclick="window.deleteItem('${item.id}')" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                
+                mobileList.innerHTML += rowHtmlMobile;
+                desktopList.innerHTML += rowHtmlDesktop;
+            });
+
+            lucide.createIcons(); // Recargar íconos tras inyectar HTML
+        }
+
+        // Acciones Globales
+        window.editItemQuantity = async (id, codigo, currentQty) => {
+            if (!currentUser) return;
+            
+            const newQtyStr = prompt(`Ingresa la nueva cantidad sugerida para el artículo ${codigo}:`, currentQty);
+            if (newQtyStr === null) return; // Se canceló la edición
+            
+            const newQty = parseInt(newQtyStr, 10);
+            if (isNaN(newQty) || newQty <= 0) {
+                showError("La cantidad debe ser un número entero mayor a 0.");
+                return;
+            }
+
+            if (newQty === currentQty) return; // No hay cambios
+
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pedidos_pendientes', id);
+                await updateDoc(docRef, { cantidad: newQty });
+            } catch (err) {
+                console.error("Error al actualizar:", err);
+                if (err.code === 'permission-denied') {
+                    showError("Permiso denegado: Debes actualizar las Reglas en Firebase.");
+                } else {
+                    showError("No se pudo actualizar la cantidad. Verifica tu conexión.");
+                }
+            }
+        };
+
+        window.changeItemStatus = async (id, newStatus) => {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pedidos_pendientes', id);
+                await updateDoc(docRef, { 
+                    estado: newStatus,
+                    estadoTimestamp: Date.now()
+                });
+            } catch (err) {
+                console.error("Error al actualizar estado:", err);
+                if (err.code === 'permission-denied') {
+                    showError("Permiso denegado: Debes actualizar las Reglas en Firebase.");
+                } else {
+                    showError("No se pudo actualizar el estado. Verifica tu conexión.");
+                }
+            }
+        };
+
+        window.deleteItem = async (id) => {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pedidos_pendientes', id);
+                await deleteDoc(docRef);
+            } catch (err) {
+                showError("No se pudo eliminar el artículo.");
+            }
+        };
+
+        // Funciones para Proveedores
+        window.deleteProveedor = async (id) => {
+            if (!currentUser) return;
+            if (!confirm("¿Seguro que deseas eliminar este proveedor?")) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'proveedores', id);
+                await deleteDoc(docRef);
+            } catch (err) {
+                showError("No se pudo eliminar el proveedor.");
+            }
+        };
+
+        document.getElementById('add-proveedor-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const input = document.getElementById('nombre-proveedor');
+            const nombre = input.value.trim();
+            if (!nombre) return;
+            input.value = ''; // UI Optimista
+
+            try {
+                const exists = proveedores.find(p => p.nombre.toLowerCase() === nombre.toLowerCase());
+                if (exists) {
+                    showError("El proveedor ya existe.");
+                    return;
+                }
+                const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'proveedores');
+                await addDoc(ref, { nombre: nombre, timestamp: Date.now() });
+            } catch (err) {
+                input.value = nombre;
+                if (err.code === 'permission-denied') {
+                    showError("Permiso denegado: Revisa las reglas de Firestore.");
+                } else {
+                    showError("No se pudo agregar el proveedor.");
+                }
+            }
+        });
+
+        // Funciones para Departamentos
+        window.deleteDepartamento = async (id) => {
+            if (!currentUser) return;
+            if (!confirm("¿Seguro que deseas eliminar este departamento?")) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'departamentos', id);
+                await deleteDoc(docRef);
+            } catch (err) {
+                showError("No se pudo eliminar el departamento.");
+            }
+        };
+
+        document.getElementById('add-departamento-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const input = document.getElementById('nombre-departamento');
+            const nombre = input.value.trim();
+            if (!nombre) return;
+            input.value = ''; // UI Optimista
+
+            try {
+                const exists = departamentos.find(d => d.nombre.toLowerCase() === nombre.toLowerCase());
+                if (exists) {
+                    showError("El departamento ya existe.");
+                    return;
+                }
+                const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'departamentos');
+                await addDoc(ref, { nombre: nombre, timestamp: Date.now() });
+            } catch (err) {
+                input.value = nombre;
+                if (err.code === 'permission-denied') {
+                    showError("Permiso denegado: Revisa las reglas de Firestore.");
+                } else {
+                    showError("No se pudo agregar el departamento.");
+                }
+            }
+        });
+
+        document.getElementById('add-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const inputCodigo = document.getElementById('codigo');
+            const inputDescripcion = document.getElementById('descripcion');
+            const inputCantidad = document.getElementById('cantidad');
+            const inputProveedor = document.getElementById('proveedor');
+            const inputDepartamento = document.getElementById('departamento');
+
+            const nuevoCodigo = inputCodigo.value.toUpperCase().trim();
+            const nuevaCantidad = parseInt(inputCantidad.value, 10) || 1;
+            const nuevaDescripcion = inputDescripcion.value.trim();
+            const nuevoProveedor = inputProveedor.value;
+            const nuevoDepartamento = inputDepartamento.value;
+
+            // ⚡ Interfaz Optimista: Limpiar y enfocar instantáneamente
+            inputCodigo.value = '';
+            inputDescripcion.value = '';
+            inputCantidad.value = '1';
+            inputProveedor.value = '';
+            inputDepartamento.value = '';
+            inputCodigo.focus();
+
+            try {
+                // Comprobar si ya existe el código en toda la lista
+                const itemExistente = items.find(item => item.codigo === nuevoCodigo);
+
+                if (itemExistente) {
+                    // Evitar duplicados y mostrar alerta estética
+                    showDuplicateToast(nuevoCodigo);
+                    highlightItem(itemExistente.id);
+                } else {
+                    // Si no existe, creamos un documento nuevo
+                    const pedidosRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'pedidos_pendientes');
+                    await addDoc(pedidosRef, {
+                        codigo: nuevoCodigo,
+                        descripcion: nuevaDescripcion,
+                        proveedor: nuevoProveedor,
+                        departamento: nuevoDepartamento,
+                        cantidad: nuevaCantidad,
+                        estado: 'pendiente',
+                        estadoTimestamp: Date.now(),
+                        timestamp: Date.now()
+                    });
+                }
+            } catch (err) {
+                // ↩️ Revertir en caso de error para no perder la captura
+                inputCodigo.value = nuevoCodigo;
+                inputDescripcion.value = nuevaDescripcion;
+                inputProveedor.value = nuevoProveedor;
+                inputDepartamento.value = nuevoDepartamento;
+                inputCantidad.value = nuevaCantidad;
+
+                console.error("Error al procesar el artículo:", err);
+                if (err.code === 'permission-denied') {
+                    showError("Permiso denegado: Debes actualizar las Reglas en Firebase.");
+                } else {
+                    showError("No se pudo procesar el artículo. Verifica tu conexión.");
+                }
+            }
+        });
+
+        function generatePDF() {
+            if (filteredItems.length === 0) return null;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const currentDate = new Date();
+            const dateString = currentDate.toLocaleDateString('es-MX');
+            const timeString = currentDate.toLocaleTimeString('es-MX');
+
+            // Estilos del encabezado
+            doc.setFillColor(30, 58, 138); 
+            doc.rect(0, 0, 210, 30, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Pedido de Refacciones", 14, 20);
+            
+            // Datos extra
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generado el: ${dateString} a las ${timeString}`, 14, 40);
+            doc.text(`Total de renglones: ${filteredItems.length}`, 14, 45);
+
+            const tableData = filteredItems.map((item, index) => {
+                const estadoTxt = (item.estado || 'pendiente').toUpperCase();
+                return [index + 1, item.codigo, item.descripcion, item.proveedor || '-', item.departamento || '-', item.cantidad, estadoTxt];
+            });
+
+            // Generar tabla
+            doc.autoTable({
+                startY: 50,
+                head: [['#', 'Código', 'Descripción', 'Proveedor', 'Depto.', 'Cant.', 'Estado']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
+                styles: { fontSize: 10, cellPadding: 4 },
+                columnStyles: {
+                    0: { cellWidth: 9, halign: 'center' },
+                    1: { cellWidth: 22, fontStyle: 'bold' },
+                    2: { cellWidth: 'auto' },
+                    3: { cellWidth: 26 },
+                    4: { cellWidth: 22 },
+                    5: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
+                    6: { cellWidth: 22, halign: 'center' },
+                },
+                alternateRowStyles: { fillColor: [245, 247, 250] }
+            });
+
+            const fileName = `Pedido_${dateString.replace(/\//g, '-')}_${timeString.replace(/:/g, '')}.pdf`;
+            doc.save(fileName);
+            return fileName;
+        }
+
+        document.getElementById('btn-pdf').addEventListener('click', generatePDF);
+
+        document.getElementById('btn-whatsapp').addEventListener('click', () => {
+            if (filteredItems.length === 0) return;
+            generatePDF(); // Descarga el PDF primero
+
+            const currentDate = new Date();
+            const dateString = currentDate.toLocaleDateString('es-MX');
+            const timeString = currentDate.toLocaleTimeString('es-MX');
+
+            let text = `*📦 Nuevo Pedido de Refacciones*\n`;
+            text += `📅 Fecha: ${dateString}\n`;
+            text += `⏰ Hora: ${timeString}\n`;
+            text += `📊 Total de artículos: ${filteredItems.length}\n\n`;
+            text += `*Resumen rápido:*\n`;
+
+            filteredItems.slice(0, 10).forEach(i => {
+                const estado = (i.estado || 'pendiente').toUpperCase();
+                const prov = i.proveedor ? ` [Prov: ${i.proveedor}]` : '';
+                const dept = i.departamento ? ` [Dep: ${i.departamento}]` : '';
+                text += `- ${i.cantidad}x [${i.codigo}] ${i.descripcion}${prov}${dept} (${estado})\n`;
+            });
+
+            if (filteredItems.length > 10) {
+                text += `...y ${filteredItems.length - 10} artículos más.\n`;
+            }
+            text += `\n*Nota:* El PDF detallado ha sido generado y te lo adjunto en un momento.`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        });
+
+        // Autenticación y Escucha de Firestore
+        signInAnonymously(auth).catch(err => {
+            showError("Error de autenticación. Verifica tu conexión.");
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            setConnectionStatus('offline');
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                const pedidosRef = collection(db, 'artifacts', appId, 'users', user.uid, 'pedidos_pendientes');
+                onSnapshot(pedidosRef, (snapshot) => {
+                    items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    items.sort((a, b) => a.timestamp - b.timestamp);
+                    applyFilters();
+                    
+                    if (navigator.onLine) setConnectionStatus('online');
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
+                }, (err) => {
+                    showError("Error al cargar la lista de pedidos.");
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('app-content').style.display = 'block';
+                    setConnectionStatus('offline');
+                });
+
+                const provRef = collection(db, 'artifacts', appId, 'users', user.uid, 'proveedores');
+                onSnapshot(provRef, (snapshot) => {
+                    proveedores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    proveedores.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                    renderProveedoresUI();
+                });
+
+                const deptRef = collection(db, 'artifacts', appId, 'users', user.uid, 'departamentos');
+                onSnapshot(deptRef, (snapshot) => {
+                    departamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    departamentos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                    renderDepartamentosUI();
+                });
+            } else {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                setConnectionStatus('offline');
+            }
+        });
+    </script>
+</body>
+</html>
