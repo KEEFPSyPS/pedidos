@@ -70,7 +70,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i data-lucide="mail" class="h-4 w-4 text-slate-400"></i>
                         </div>
-                        <input type="email" id="login-email" required class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="correo@ejemplo.com">
+                        <input type="email" id="login-email" required class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="correo@ejemplo.com" autocomplete="off">
                     </div>
                 </div>
                 <div>
@@ -79,7 +79,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i data-lucide="lock" class="h-4 w-4 text-slate-400"></i>
                         </div>
-                        <input type="password" id="login-password" required class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="••••••••">
+                        <input type="password" id="login-password" required class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="••••••••" autocomplete="off">
                     </div>
                 </div>
                 <button type="submit" id="btn-login-submit" class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 mt-2">
@@ -136,7 +136,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i data-lucide="hash" class="h-5 w-5 text-slate-400"></i>
                                 </div>
-                                <input type="text" id="codigo" required class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base" placeholder="Ej. VW-045">
+                                <input type="text" id="codigo" required class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base" placeholder="Ej. VW-045" autocomplete="off">
                             </div>
                         </div>
                         <!-- Descripción -->
@@ -146,7 +146,7 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <i data-lucide="type" class="h-5 w-5 text-slate-400"></i>
                                 </div>
-                                <input type="text" id="descripcion" required class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base" placeholder="Bomba de agua A7">
+                                <input type="text" id="descripcion" required class="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base" placeholder="Bomba de agua A7" autocomplete="off">
                             </div>
                         </div>
                     </div>
@@ -188,7 +188,7 @@
                         <!-- Cantidad -->
                         <div class="w-full md:w-32">
                             <label class="block text-sm font-medium text-slate-600 mb-1 ml-1">Cant. sugerida</label>
-                            <input type="number" id="cantidad" inputmode="numeric" required min="1" value="1" class="block w-full px-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-center font-bold" placeholder="1">
+                            <input type="number" id="cantidad" inputmode="numeric" required min="1" value="1" class="block w-full px-3 py-3 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-base text-center font-bold" placeholder="1" autocomplete="off">
                         </div>
                         <!-- Botón Enviar -->
                         <div class="w-full md:w-auto">
@@ -219,7 +219,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="search" class="h-4 w-4 text-slate-400"></i>
                             </div>
-                            <input type="text" id="search-input" class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Buscar artículo por código o descripción...">
+                            <input type="text" id="search-input" class="block w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Buscar artículo por código o descripción..." autocomplete="off">
                         </div>
                         <button id="btn-clear-filters" class="flex items-center justify-center px-3 py-2 bg-white border border-slate-300 text-slate-600 hover:text-red-600 hover:bg-red-50 hover:border-red-200 rounded-lg transition-colors font-medium text-sm flex-shrink-0 gap-2" title="Limpiar filtros">
                             <i data-lucide="filter-x" class="w-4 h-4"></i>
@@ -303,7 +303,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="building-2" class="h-5 w-5 text-slate-400"></i>
                             </div>
-                            <input type="text" id="nombre-proveedor" required class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm" placeholder="Nombre del proveedor...">
+                            <input type="text" id="nombre-proveedor" required class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm" placeholder="Nombre del proveedor..." autocomplete="off">
                         </div>
                         <button type="submit" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -336,7 +336,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="tag" class="h-5 w-5 text-slate-400"></i>
                             </div>
-                            <input type="text" id="nombre-departamento" required class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 text-sm" placeholder="Nombre del departamento...">
+                            <input type="text" id="nombre-departamento" required class="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 text-sm" placeholder="Nombre del departamento..." autocomplete="off">
                         </div>
                         <button type="submit" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i>
