@@ -544,24 +544,27 @@
             const currentVal = select.value; 
             const filterCurrentVal = filterSelect.value;
             
-            select.innerHTML = '<option value="">Sin proveedor seleccionado</option>';
-            filterSelect.innerHTML = '<option value="">Todos los prov.</option>';
+            let selectHTML = '<option value="">Sin proveedor seleccionado</option>';
+            let filterSelectHTML = '<option value="">Todos los prov.</option>';
             
             proveedores.forEach(p => {
                 const isSelected = p.nombre === currentVal ? 'selected' : '';
-                select.innerHTML += `<option value="${p.nombre}" ${isSelected}>${p.nombre}</option>`;
+                selectHTML += `<option value="${p.nombre}" ${isSelected}>${p.nombre}</option>`;
                 
                 const isFilterSelected = p.nombre === filterCurrentVal ? 'selected' : '';
-                filterSelect.innerHTML += `<option value="${p.nombre}" ${isFilterSelected}>${p.nombre}</option>`;
+                filterSelectHTML += `<option value="${p.nombre}" ${isFilterSelected}>${p.nombre}</option>`;
             });
+
+            select.innerHTML = selectHTML;
+            filterSelect.innerHTML = filterSelectHTML;
 
             const list = document.getElementById('proveedores-list');
             if (proveedores.length === 0) {
                 list.innerHTML = '<p class="text-sm text-slate-400 italic">No hay proveedores registrados aún.</p>';
             } else {
-                list.innerHTML = '';
+                let listHTML = '';
                 proveedores.forEach(p => {
-                    list.innerHTML += `
+                    listHTML += `
                         <div class="flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm">
                             <i data-lucide="building-2" class="w-3.5 h-3.5 mr-0.5"></i>
                             ${p.nombre}
@@ -570,6 +573,7 @@
                             </button>
                         </div>`;
                 });
+                list.innerHTML = listHTML;
             }
             lucide.createIcons();
         }
@@ -593,24 +597,27 @@
             const currentVal = select.value;
             const filterCurrentVal = filterSelect.value;
             
-            select.innerHTML = '<option value="">Sin departamento</option>';
-            filterSelect.innerHTML = '<option value="">Todos los deptos.</option>';
+            let selectHTML = '<option value="">Sin departamento</option>';
+            let filterSelectHTML = '<option value="">Todos los deptos.</option>';
             
             departamentos.forEach(d => {
                 const isSelected = d.nombre === currentVal ? 'selected' : '';
-                select.innerHTML += `<option value="${d.nombre}" ${isSelected}>${d.nombre}</option>`;
+                selectHTML += `<option value="${d.nombre}" ${isSelected}>${d.nombre}</option>`;
                 
                 const isFilterSelected = d.nombre === filterCurrentVal ? 'selected' : '';
-                filterSelect.innerHTML += `<option value="${d.nombre}" ${isFilterSelected}>${d.nombre}</option>`;
+                filterSelectHTML += `<option value="${d.nombre}" ${isFilterSelected}>${d.nombre}</option>`;
             });
+
+            select.innerHTML = selectHTML;
+            filterSelect.innerHTML = filterSelectHTML;
 
             const list = document.getElementById('departamentos-list');
             if (departamentos.length === 0) {
                 list.innerHTML = '<p class="text-sm text-slate-400 italic">No hay departamentos registrados aún.</p>';
             } else {
-                list.innerHTML = '';
+                let listHTML = '';
                 departamentos.forEach(d => {
-                    list.innerHTML += `
+                    listHTML += `
                         <div class="flex items-center gap-1 bg-teal-50 text-teal-700 border border-teal-200 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm">
                             <i data-lucide="layers" class="w-3.5 h-3.5 mr-0.5"></i>
                             ${d.nombre}
@@ -619,6 +626,7 @@
                             </button>
                         </div>`;
                 });
+                list.innerHTML = listHTML;
             }
             lucide.createIcons();
         }
@@ -659,8 +667,8 @@
                 footerActions.classList.remove('hidden');
             }
 
-            mobileList.innerHTML = '';
-            desktopList.innerHTML = '';
+            let mobileHTML = '';
+            let desktopHTML = '';
 
             filteredItems.forEach((item, index) => {
                 const estado = item.estado || 'pendiente';
@@ -737,9 +745,12 @@
                         </td>
                     </tr>`;
                 
-                mobileList.innerHTML += rowHtmlMobile;
-                desktopList.innerHTML += rowHtmlDesktop;
+                mobileHTML += rowHtmlMobile;
+                desktopHTML += rowHtmlDesktop;
             });
+
+            mobileList.innerHTML = mobileHTML;
+            desktopList.innerHTML = desktopHTML;
 
             lucide.createIcons(); // Recargar íconos tras inyectar HTML
         }
