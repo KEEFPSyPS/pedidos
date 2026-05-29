@@ -25,6 +25,27 @@
     <!-- jsPDF & AutoTable (CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Estilos de Modo Oscuro Personalizados -->
+    <style>
+        html.dark body, html.dark #loading-screen, html.dark #login-screen { background-color: #0f172a; color: #f8fafc; }
+        html.dark .bg-white { background-color: #1e293b; border-color: #334155; }
+        html.dark .bg-slate-50, html.dark .bg-slate-100 { background-color: #0f172a; border-color: #334155; }
+        html.dark .text-slate-800, html.dark .text-slate-700 { color: #f1f5f9; }
+        html.dark .text-slate-600 { color: #cbd5e1; }
+        html.dark .text-slate-500 { color: #94a3b8; }
+        html.dark .text-slate-400 { color: #64748b; }
+        html.dark .border-slate-100, html.dark .border-slate-200, html.dark .border-slate-300 { border-color: #334155; }
+        html.dark input, html.dark select { background-color: #0f172a; color: #f8fafc; border-color: #475569; }
+        html.dark input:focus, html.dark select:focus { border-color: #3b82f6; }
+        html.dark .text-blue-900 { color: #93c5fd; }
+        html.dark .text-blue-800 { color: #bfdbfe; }
+        html.dark .text-blue-600 { color: #60a5fa; }
+        html.dark i.text-slate-300 { color: #475569; }
+        html.dark tr:hover { background-color: #334155; }
+        html.dark .hover\:bg-slate-50:hover, html.dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
+        html.dark thead tr.bg-slate-50 { background-color: #1e293b; }
+    </style>
 </head>
 <body class="min-h-screen bg-slate-100 pb-20 font-sans text-slate-800">
 
@@ -83,6 +104,9 @@
                     <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></div>
                     <span id="status-text" class="hidden sm:inline text-blue-100">Conectando...</span>
                 </div>
+                <button id="btn-theme-toggle" class="ml-2 bg-blue-800 hover:bg-blue-700 border border-blue-700 p-1.5 rounded-lg transition-colors" title="Cambiar Tema">
+                    <span id="theme-icon-wrapper"><i data-lucide="moon" class="w-4 h-4 text-white"></i></span>
+                </button>
                 <button id="btn-logout" class="ml-2 bg-blue-800 hover:bg-red-600 border border-blue-700 hover:border-red-500 p-1.5 rounded-lg transition-colors" title="Cerrar Sesión">
                     <i data-lucide="log-out" class="w-4 h-4 text-white"></i>
                 </button>
@@ -368,6 +392,11 @@
                 </button>
             </div>
         </div>
+
+        <!-- Botón Volver Arriba -->
+        <button id="btn-scroll-top" class="fixed bottom-24 right-4 sm:right-6 z-30 bg-slate-800/90 hover:bg-slate-900 text-white p-3 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-300 opacity-0 pointer-events-none translate-y-4" title="Volver al inicio">
+            <i data-lucide="chevron-up" class="w-5 h-5"></i>
+        </button>
     </div>
 
     <script type="module">
@@ -400,6 +429,49 @@
 
         // Inicializar los íconos de Lucide
         lucide.createIcons();
+
+        // Control del Tema (Modo Oscuro)
+        const btnThemeToggle = document.getElementById('btn-theme-toggle');
+        function applyTheme(isDark) {
+            const wrapper = document.getElementById('theme-icon-wrapper');
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                if (wrapper) wrapper.innerHTML = '<i data-lucide="sun" class="w-4 h-4 text-white"></i>';
+            } else {
+                document.documentElement.classList.remove('dark');
+                if (wrapper) wrapper.innerHTML = '<i data-lucide="moon" class="w-4 h-4 text-white"></i>';
+            }
+            lucide.createIcons(); // Recargar el ícono visualmente
+        }
+        
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
+
+        if (btnThemeToggle) {
+            btnThemeToggle.addEventListener('click', () => {
+                const isCurrentlyDark = document.documentElement.classList.contains('dark');
+                localStorage.setItem('theme', isCurrentlyDark ? 'light' : 'dark');
+                applyTheme(!isCurrentlyDark);
+            });
+        }
+
+        // Control del Botón Volver Arriba
+        const btnScrollTop = document.getElementById('btn-scroll-top');
+        if (btnScrollTop) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 250) {
+                    btnScrollTop.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    btnScrollTop.classList.add('opacity-100', 'translate-y-0');
+                } else {
+                    btnScrollTop.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    btnScrollTop.classList.remove('opacity-100', 'translate-y-0');
+                }
+            });
+            btnScrollTop.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
 
         // Helpers de UI
         function showError(msg) {
