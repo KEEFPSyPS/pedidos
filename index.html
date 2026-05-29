@@ -681,18 +681,40 @@
                     ? new Date(item.estadoTimestamp).toLocaleDateString('es-MX')
                     : '';
 
+                let provOptions = `<option value="">Sin proveedor</option>`;
+                let foundProv = false;
+                proveedores.forEach(p => {
+                    const isSelected = item.proveedor === p.nombre;
+                    if (isSelected) foundProv = true;
+                    provOptions += `<option value="${p.nombre}" ${isSelected ? 'selected' : ''}>${p.nombre}</option>`;
+                });
+                
+                if (item.proveedor && !foundProv) {
+                    provOptions += `<option value="${item.proveedor}" selected>${item.proveedor}</option>`;
+                }
+
                 const rowHtmlMobile = `
                     <div id="item-mobile-${item.id}" class="p-4 border-b border-slate-100 flex items-center gap-4 transition-colors duration-300">
                         <div class="bg-slate-100 text-slate-500 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shrink-0">${index + 1}</div>
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between items-start mb-1">
                                 <span class="font-bold text-blue-900 truncate pr-2">${item.codigo}</span>
-                                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">x${item.cantidad}</span>
+                                <div class="flex items-center gap-0.5 bg-blue-50 border border-blue-200 hover:border-blue-300 rounded px-1.5 py-0.5 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                                    <span class="text-blue-500 font-bold text-xs">x</span>
+                                    <input type="number" onchange="window.changeItemQuantity('${item.id}', this.value)" value="${item.cantidad}" min="1" class="w-10 bg-transparent text-blue-800 text-sm font-bold p-0 text-center outline-none border-none focus:ring-0" title="Editar cantidad">
+                                </div>
                             </div>
                             <p class="text-slate-600 text-sm truncate">${item.descripcion}</p>
-                            <div class="flex flex-wrap gap-3 mt-1">
-                                ${item.proveedor ? `<p class="text-slate-500 text-xs flex items-center gap-1"><i data-lucide="truck" class="w-3 h-3"></i> ${item.proveedor}</p>` : ''}
-                                ${item.departamento ? `<p class="text-slate-500 text-xs flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3"></i> ${item.departamento}</p>` : ''}
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                <div class="relative inline-flex items-center gap-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded text-slate-500 text-xs font-medium transition-colors cursor-pointer group">
+                                    <i data-lucide="truck" class="w-3 h-3 text-slate-400 shrink-0"></i>
+                                    <span class="truncate max-w-[110px]">${item.proveedor || 'Sin proveedor'}</span>
+                                    <i data-lucide="pencil" class="w-3 h-3 text-slate-400 group-hover:text-blue-500 transition-colors shrink-0"></i>
+                                    <select onchange="window.changeItemProveedor('${item.id}', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Cambiar proveedor">
+                                        ${provOptions}
+                                    </select>
+                                </div>
+                                ${item.departamento ? `<p class="text-slate-500 text-xs flex items-center gap-1 py-1"><i data-lucide="layers" class="w-3 h-3"></i> ${item.departamento}</p>` : ''}
                             </div>
                             <div class="flex items-center gap-2 mt-2">
                                 <select onchange="window.changeItemStatus('${item.id}', this.value)" class="text-xs font-bold rounded px-2 py-1 border outline-none cursor-pointer ${statusColor}" title="${dateString ? 'Actualizado: ' + dateString : ''}">
@@ -704,9 +726,6 @@
                             </div>
                         </div>
                         <div class="flex gap-1 shrink-0">
-                            <button onclick="window.editItemQuantity('${item.id}', '${item.codigo}', ${item.cantidad})" class="p-3 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar cantidad">
-                                <i data-lucide="pencil" class="w-5 h-5"></i>
-                            </button>
                             <button onclick="window.deleteItem('${item.id}')" class="p-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
                                 <i data-lucide="trash-2" class="w-5 h-5"></i>
                             </button>
@@ -719,12 +738,21 @@
                         <td class="p-4 font-bold text-blue-900">${item.codigo}</td>
                         <td class="p-4 text-slate-700">${item.descripcion}</td>
                         <td class="p-4 text-slate-500 text-sm">
-                            ${item.proveedor ? `<span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-600 font-medium"><i data-lucide="truck" class="w-3 h-3"></i> ${item.proveedor}</span>` : '-'}
+                            <div class="relative inline-flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded text-slate-600 font-medium transition-colors cursor-pointer group">
+                                <i data-lucide="truck" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                <span class="truncate max-w-[120px]">${item.proveedor || 'Sin proveedor'}</span>
+                                <i data-lucide="pencil" class="w-3 h-3 text-slate-400 group-hover:text-blue-500 transition-colors shrink-0"></i>
+                                <select onchange="window.changeItemProveedor('${item.id}', this.value)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Cambiar proveedor">
+                                    ${provOptions}
+                                </select>
+                            </div>
                         </td>
                         <td class="p-4 text-slate-500 text-sm">
                             ${item.departamento ? `<span class="inline-flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded text-slate-600 font-medium"><i data-lucide="layers" class="w-3 h-3"></i> ${item.departamento}</span>` : '-'}
                         </td>
-                        <td class="p-4 text-center font-bold">${item.cantidad}</td>
+                        <td class="p-4 text-center">
+                            <input type="number" onchange="window.changeItemQuantity('${item.id}', this.value)" value="${item.cantidad}" min="1" class="w-16 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded px-2 py-1 text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-colors" title="Editar cantidad">
+                        </td>
                         <td class="p-4 text-center">
                             <select onchange="window.changeItemStatus('${item.id}', this.value)" class="text-xs font-bold rounded px-2 py-1 border outline-none cursor-pointer ${statusColor}" title="${dateString ? 'Actualizado: ' + dateString : ''}">
                                 <option value="pendiente" ${estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
@@ -735,9 +763,6 @@
                         </td>
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center gap-1">
-                                <button onclick="window.editItemQuantity('${item.id}', '${item.codigo}', ${item.cantidad})" class="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar cantidad">
-                                    <i data-lucide="pencil" class="w-5 h-5"></i>
-                                </button>
                                 <button onclick="window.deleteItem('${item.id}')" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
                                     <i data-lucide="trash-2" class="w-5 h-5"></i>
                                 </button>
@@ -756,19 +781,14 @@
         }
 
         // Acciones Globales
-        window.editItemQuantity = async (id, codigo, currentQty) => {
+        window.changeItemQuantity = async (id, newValue) => {
             if (!currentUser) return;
             
-            const newQtyStr = prompt(`Ingresa la nueva cantidad sugerida para el artículo ${codigo}:`, currentQty);
-            if (newQtyStr === null) return; // Se canceló la edición
-            
-            const newQty = parseInt(newQtyStr, 10);
+            const newQty = parseInt(newValue, 10);
             if (isNaN(newQty) || newQty <= 0) {
                 showError("La cantidad debe ser un número entero mayor a 0.");
                 return;
             }
-
-            if (newQty === currentQty) return; // No hay cambios
 
             try {
                 const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pedidos_pendientes', id);
@@ -797,6 +817,21 @@
                     showError("Permiso denegado: Debes actualizar las Reglas en Firebase.");
                 } else {
                     showError("No se pudo actualizar el estado. Verifica tu conexión.");
+                }
+            }
+        };
+
+        window.changeItemProveedor = async (id, newProveedor) => {
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'pedidos_pendientes', id);
+                await updateDoc(docRef, { proveedor: newProveedor });
+            } catch (err) {
+                console.error("Error al actualizar proveedor:", err);
+                if (err.code === 'permission-denied') {
+                    showError("Permiso denegado: Debes actualizar las Reglas en Firebase.");
+                } else {
+                    showError("No se pudo actualizar el proveedor. Verifica tu conexión.");
                 }
             }
         };
@@ -838,6 +873,7 @@
                     showError("El proveedor ya existe.");
                     return;
                 }
+                modalProveedores.classList.add('hidden');
                 const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'proveedores');
                 await addDoc(ref, { nombre: nombre, timestamp: Date.now() });
             } catch (err) {
@@ -877,6 +913,7 @@
                     showError("El departamento ya existe.");
                     return;
                 }
+                modalDepartamentos.classList.add('hidden');
                 const ref = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'departamentos');
                 await addDoc(ref, { nombre: nombre, timestamp: Date.now() });
             } catch (err) {
@@ -1104,6 +1141,7 @@
                     proveedores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     proveedores.sort((a, b) => a.nombre.localeCompare(b.nombre));
                     renderProveedoresUI();
+                renderItems(); // Refresca la tabla para inyectar los proveedores en el menú desplegable
                 });
 
                 const deptRef = collection(db, 'artifacts', appId, 'users', user.uid, 'departamentos');
@@ -1111,6 +1149,7 @@
                     departamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     departamentos.sort((a, b) => a.nombre.localeCompare(b.nombre));
                     renderDepartamentosUI();
+                renderItems(); // Refresca la tabla para inyectar los departamentos si aplica
                 });
             } else {
                 // Desuscribirse si venimos de una sesión activa para limpiar caché
