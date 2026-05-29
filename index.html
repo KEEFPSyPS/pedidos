@@ -1014,26 +1014,22 @@
             doc.text(`Total de renglones: ${filteredItems.length}`, 14, 45);
 
             const tableData = filteredItems.map((item, index) => {
-                const estadoTxt = (item.estado || 'pendiente').toUpperCase();
-                return [index + 1, item.codigo, item.descripcion, item.proveedor || '-', item.departamento || '-', item.cantidad, estadoTxt];
+                return [index + 1, item.codigo, item.descripcion, item.cantidad];
             });
 
             // Generar tabla
             doc.autoTable({
                 startY: 50,
-                head: [['#', 'Código', 'Descripción', 'Proveedor', 'Depto.', 'Cant.', 'Estado']],
+                head: [['#', 'Código', 'Descripción', 'Cant.']],
                 body: tableData,
                 theme: 'grid',
                 headStyles: { fillColor: [30, 58, 138], textColor: 255, fontStyle: 'bold' },
                 styles: { fontSize: 10, cellPadding: 4 },
                 columnStyles: {
-                    0: { cellWidth: 9, halign: 'center' },
-                    1: { cellWidth: 22, fontStyle: 'bold' },
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 35, fontStyle: 'bold' },
                     2: { cellWidth: 'auto' },
-                    3: { cellWidth: 26 },
-                    4: { cellWidth: 22 },
-                    5: { cellWidth: 14, halign: 'center', fontStyle: 'bold' },
-                    6: { cellWidth: 22, halign: 'center' },
+                    3: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
                 },
                 alternateRowStyles: { fillColor: [245, 247, 250] }
             });
