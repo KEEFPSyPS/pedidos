@@ -2,19 +2,82 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captura de Pedidos HEPA</title>
-    <link rel="icon" href="img/hapa_512.png" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pedidos HEPA - Sistema de Captura</title>
     
-    <!-- PWA Manifest & Theme -->
+    <!-- ============================================================
+         META TAGS ESENCIALES PARA PWA
+         ============================================================ -->
+    
+    <!-- Canonical & Language -->
+    <link rel="canonical" href="https://keefpsyps.github.io/pedidos/">
+    <meta http-equiv="content-language" content="es-MX">
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1e3a8a">
-
-    <!-- Apple PWA Tags -->
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    
+    <!-- Microsoft Windows PWA -->
+    <meta name="application-name" content="Pedidos HEPA">
+    <meta name="msapplication-TileColor" content="#1e3a8a">
+    <meta name="msapplication-TileImage" content="img/hapa_512.png">
+    <meta name="msapplication-starturl" content="./index.html?source=pwa">
+    
+    <!-- Apple iOS PWA (Safari) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Pedidos HEPA">
     <link rel="apple-touch-icon" href="img/hapa_512.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="img/hapa_512.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="img/hapa_512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="img/hapa_512.png">
+    
+    <!-- Apple iOS Splash Screens -->
+    <link rel="apple-touch-startup-image" href="img/hapa_512.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="img/hapa_512.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="img/hapa_512.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+    
+    <!-- Apple PWA Smart App Banner -->
+    <meta name="apple-itunes-app" content="app-id=, app-argument=./index.html">
+    
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:title" content="Pedidos HEPA - Sistema de Captura">
+    <meta property="og:description" content="Sistema profesional para la captura y gestión de pedidos de refacciones.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://keefpsyps.github.io/pedidos/">
+    <meta property="og:image" content="img/hapa_512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:locale" content="es_MX">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Pedidos HEPA">
+    <meta name="twitter:description" content="Sistema de captura de pedidos de refacciones">
+    <meta name="twitter:image" content="img/hapa_512.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="img/hapa_512.png" type="image/png">
+    <link rel="icon" sizes="192x192" href="img/hapa_512.png">
+    <link rel="icon" sizes="512x512" href="img/hapa_512.png">
+    
+    <!-- DNS Prefetch & Preconnect -->
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    
+    <!-- Preload crítico -->
+    <link rel="preload" href="img/Logo_HEPA.png" as="image">
+    <link rel="preload" href="img/hapa_512.png" as="image">
 
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>

@@ -1,23 +1,136 @@
 {
-    "name": "Pedidos HEPA",
-    "short_name": "Pedidos HEPA",
-    "description": "Aplicación para la captura de pedidos de refacciones.",
-    "start_url": "./index.html",
-    "display": "standalone",
-    "background_color": "#f1f5f9",
-    "theme_color": "#1e3a8a",
-    "icons": [
+  "name": "Pedidos HEPA - Sistema de Captura",
+  "short_name": "Pedidos HEPA",
+  "description": "Sistema profesional para la captura y gestión de pedidos de refacciones con sincronización en tiempo real.",
+  "start_url": "./index.html?source=pwa",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "id": "/?source=pwa",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "background_color": "#f1f5f9",
+  "theme_color": "#1e3a8a",
+  "categories": ["business", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "screenshots": [
+    {
+      "src": "img/screenshot_wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Vista principal del sistema de pedidos"
+    },
+    {
+      "src": "img/screenshot_narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vista móvil del sistema de pedidos"
+    }
+  ],
+  "icons": [
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/hapa_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nuevo Pedido",
+      "short_name": "Nuevo",
+      "description": "Agregar un nuevo artículo al pedido",
+      "url": "./index.html?source=pwa&action=new",
+      "icons": [
         {
-            "src": "img/hapa_512.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "img/hapa_512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any"
+          "src": "img/hapa_512.png",
+          "sizes": "192x192",
+          "type": "image/png"
         }
-    ]
+      ]
+    },
+    {
+      "name": "Lista de Pedidos",
+      "short_name": "Lista",
+      "description": "Ver la lista actual de pedidos",
+      "url": "./index.html?source=pwa&action=list",
+      "icons": [
+        {
+          "src": "img/hapa_512.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "handle_links": "preferred",
+  "protocol_handlers": [],
+  "share_target": {
+    "action": "./index.html?source=pwa&share=1",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "related_applications": []
 }
