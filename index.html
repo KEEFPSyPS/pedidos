@@ -167,6 +167,9 @@
                     <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></div>
                     <span id="status-text" class="hidden sm:inline text-blue-100">Conectando...</span>
                 </div>
+                <button id="btn-install-app" class="ml-2 bg-blue-800 hover:bg-blue-700 border border-blue-700 p-1.5 rounded-lg transition-colors hidden" title="Instalar aplicación">
+                    <i data-lucide="download" class="w-4 h-4 text-white"></i>
+                </button>
                 <button id="btn-theme-toggle" class="ml-2 bg-blue-800 hover:bg-blue-700 border border-blue-700 p-1.5 rounded-lg transition-colors" title="Cambiar Tema">
                     <span id="theme-icon-wrapper"><i data-lucide="moon" class="w-4 h-4 text-white"></i></span>
                 </button>
@@ -1338,6 +1341,61 @@
                     newWorker.postMessage({ action: 'skipWaiting' });
                 }
             });
+        }
+
+        // ============================================================
+        // PWA: Instalación como Aplicación Nativa (Add to Home Screen)
+        // ============================================================
+        let deferredPrompt = null;
+        const btnInstall = document.getElementById('btn-install-app');
+
+        // Escuchar el evento beforeinstallprompt para interceptar la instalación
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevenir que Chrome muestre automáticamente el mini-infobar
+            e.preventDefault();
+            // Guardar el evento para usarlo después
+            deferredPrompt = e;
+            // Mostrar el botón de instalación
+            if (btnInstall) {
+                btnInstall.classList.remove('hidden');
+            }
+        });
+
+        // Acción al hacer clic en el botón de instalar
+        if (btnInstall) {
+            btnInstall.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                
+                // Mostrar el cuadro de diálogo de instalación nativo
+                deferredPrompt.prompt();
+                
+                // Esperar a que el usuario responda al cuadro de diálogo
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`[PWA] Resultado de instalación: ${outcome}`);
+                
+                // Ya no podemos usar el mismo evento, limpiar
+                deferredPrompt = null;
+                // Ocultar el botón de instalación
+                btnInstall.classList.add('hidden');
+            });
+        }
+
+        // Detectar cuando la aplicación se ha instalado correctamente
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] Aplicación instalada exitosamente');
+            deferredPrompt = null;
+            if (btnInstall) {
+                btnInstall.classList.add('hidden');
+            }
+        });
+
+        // Detectar si la app ya se está ejecutando como PWA (standalone)
+        // En ese caso, ocultar el botón de instalación
+        if (window.matchMedia('(display-mode: standalone)').matches || 
+            window.navigator.standalone === true) {
+            if (btnInstall) {
+                btnInstall.classList.add('hidden');
+            }
         }
     </script>
 </body>
