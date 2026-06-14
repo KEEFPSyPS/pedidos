@@ -113,8 +113,11 @@ async function networkFirstWithTimeout(request, timeoutMs = 5000) {
     ]);
 
     if (response && response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, response.clone());
+      // Solo cachear requests GET (Cache API no soporta POST/PUT/DELETE)
+      if (request.method === 'GET') {
+        const cache = await caches.open(DYNAMIC_CACHE_NAME);
+        cache.put(request, response.clone());
+      }
       return response;
     }
     throw new Error('Response not OK');
@@ -143,8 +146,11 @@ async function cacheFirst(request) {
   try {
     const response = await fetch(request.clone());
     if (response && response.ok) {
-      const cache = await caches.open(STATIC_ASSETS_CACHE);
-      cache.put(request, response.clone());
+      // Solo cachear requests GET con scheme soportado (http/https)
+      if (request.method === 'GET' && request.url.startsWith('http')) {
+        const cache = await caches.open(STATIC_ASSETS_CACHE);
+        cache.put(request, response.clone());
+      }
     }
     return response;
   } catch (err) {
@@ -161,7 +167,10 @@ async function staleWhileRevalidate(request) {
   const cachedResponse = await cache.match(request);
   const fetchPromise = fetch(request.clone()).then(response => {
     if (response && response.ok) {
-      cache.put(request, response.clone());
+      // Solo cachear requests GET con scheme soportado (http/https)
+      if (request.method === 'GET' && request.url.startsWith('http')) {
+        cache.put(request, response.clone());
+      }
     }
     return response;
   }).catch(err => {
@@ -197,6 +206,13 @@ async function networkOnly(request) {
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // Ignorar requests que la Cache API no soporta:
+  // - Schemes no http/https (chrome-extension, blob, data, etc.)
+  // - Métodos que no sean GET (POST, PUT, DELETE, etc.)
+  if (!request.url.startsWith('http') || request.method !== 'GET') {
+    return;
+  }
 
   // === ESTRATEGIAS POR TIPO DE RECURSO ===
 
